@@ -104,11 +104,14 @@ class LocalWebController(tornado.web.Application):
         #print(self.throttle)
         if self.throttle > 0:
             self.motor.motor_all_start(int(self.throttle*100))
-        return self.angle, self.throttle, self.mode, self.recording
+        else:
+            self.motor.motor_all_start(0)
         angle_x = self.angle*100 + 90
         print(angle_x)
         if angle_x > 30 and angle_x < 150:
             self.servo.servo[0].angle = angle_x
+        return self.angle, self.throttle, self.mode, self.recording
+        
     def run(self, img_arr=None):
         self.img_arr = img_arr
         return self.angle, self.throttle, self.mode, self.recording
