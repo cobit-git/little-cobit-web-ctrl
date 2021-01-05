@@ -53,10 +53,6 @@ class LocalWebController(tornado.web.Application):
         self.wsclients = []
         self.loop = None
 
-        # Conner
-        self.motor = CobitCarMotorL9110()
-        self.servo = ServoKit(channels=16)
-
 
         handlers = [
             (r"/", RedirectHandler, dict(url="/drive")),
@@ -105,17 +101,30 @@ class LocalWebController(tornado.web.Application):
                 if self.loop is not None:
                     self.loop.add_callback(self.update_wsclients)
         # Conner 
-        print(self.throttle)
+        #print(self.throttle)
         if self.throttle > 0:
             self.motor.motor_all_start(int(self.throttle*100))
         return self.angle, self.throttle, self.mode, self.recording
-
+        angle_x = self.angle*100 + 90
+        print(angle_x)
+        if angle_x > 30 and angle_x < 150:
+            self.servo.servo[0].angle = angle_x
     def run(self, img_arr=None):
         self.img_arr = img_arr
         return self.angle, self.throttle, self.mode, self.recording
 
     def shutdown(self):
         pass
+
+    # Conner
+    def motor_init(self):
+        self.motor = CobitCarMotorL9110()
+        self.servo = ServoKit(channels=16)
+
+    # Conner
+    def motor_stop(self):
+        self.motor.motor_all_stop()
+        self.servo.servo[0].angle = 90
 
 
 class DriveAPI(RequestHandler):
@@ -305,9 +314,13 @@ if __name__=='__main__':
     #t.daemon = True
     t.start()
 
+    app.motor_init()
+
     while True:
         app.run_threaded()
         time.sleep(0.1)
+
+    app.motor_stop()
 
 
 
