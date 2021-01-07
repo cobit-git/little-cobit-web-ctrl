@@ -26,6 +26,7 @@ import threading
 # Conner
 from adafruit_servokit import ServoKit
 from cobit_car_motor_l9110 import CobitCarMotorL9110
+from cobit_opencv_cam import CobitOpenCVCam
 
 #from ... import utils
 
@@ -313,14 +314,18 @@ class WebFpv(Application):
 
 if __name__=='__main__':
     app = LocalWebController()
+    cam = CobitOpenCVCam()
     t =  threading.Thread(target=app.update, args=())
+    c =  threading.Thread(target=cam.update, args=())
     #t.daemon = True
     t.start()
+    c.start()
 
     app.motor_init()
 
     while True:
         app.run_threaded()
+        cam.run_threaded()
         time.sleep(0.1)
 
     app.motor_stop()
