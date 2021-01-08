@@ -26,8 +26,8 @@ from socket import gethostname
 import threading 
 
 # Conner
-from adafruit_servokit import ServoKit
-from cobit_car_motor_l9110 import CobitCarMotorL9110
+#from adafruit_servokit import ServoKit
+#from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
 
 #from ... import utils
@@ -106,13 +106,16 @@ class LocalWebController(tornado.web.Application):
         # Conner 
         #print(self.throttle)
         if self.throttle > 0:
-            self.motor.motor_all_start(int(self.throttle*100))
+            #self.motor.motor_all_start(int(self.throttle*100))
+            pass
         else:
-            self.motor.motor_all_start(0)
+            #self.motor.motor_all_start(0)
+            pass
         angle_x = self.angle*100 + 90
         #print(angle_x)
         if angle_x > 30 and angle_x < 150:
-            self.servo.servo[0].angle = angle_x
+            #self.servo.servo[0].angle = angle_x
+            pass
         return self.angle, self.throttle, self.mode, self.recording
         
     def run(self, img_arr=None):
@@ -123,14 +126,14 @@ class LocalWebController(tornado.web.Application):
         pass
 
     # Conner
-    def motor_init(self):
-        self.motor = CobitCarMotorL9110()
-        self.servo = ServoKit(channels=16)
+    #def motor_init(self):
+    #    self.motor = CobitCarMotorL9110()
+    #    self.servo = ServoKit(channels=16)
 
     # Conner
-    def motor_stop(self):
-        self.motor.motor_all_stop()
-        self.servo.servo[0].angle = 90
+    #def motor_stop(self):
+    #    self.motor.motor_all_stop()
+    #    self.servo.servo[0].angle = 90
 
 
 class DriveAPI(RequestHandler):
@@ -236,8 +239,11 @@ class VideoAPI(RequestHandler):
     '''
     Serves a MJPEG of the images posted from the vehicle.
     '''
-    global frame
     async def get(self):
+
+        cam = CobitOpenCVCam()
+        c =  threading.Thread(target=cam.update, args=())
+        c.start()
 
         self.set_header("Content-type",
                         "multipart/x-mixed-replace;boundary=--boundarydonotcross")
@@ -247,15 +253,18 @@ class VideoAPI(RequestHandler):
         while True:
 
             interval = .01
-            if served_image_timestamp + interval < time.time(): #and 
+            #if served_image_timestamp + interval < time.time(): #and 
                 #    hasattr(self.application, 'img_arr'):
 
                 #img = utils.arr_to_binary(self.application.img_arr)
+            
+            self.jpeg = cam.run_threaded()
+            if self.jpeg is not None:
                 self.write(my_boundary)
                 self.write("Content-type: image/jpeg\r\n")
-                self.write("Content-length: %s\r\n\r\n" % len(frame))
-                self.write(frame)
-                served_image_timestamp = time.time()
+                self.write("Content-length: %s\r\n\r\n" % len(self.jpeg))
+                self.write(self.jpeg)
+                #served_image_timestamp = time.time()
                 try:
                     await self.flush()
                 except tornado.iostream.StreamClosedError:
@@ -316,27 +325,27 @@ class WebFpv(Application):
 
 if __name__=='__main__':
     app = LocalWebController()
-    cam = CobitOpenCVCam()
+    #cam = CobitOpenCVCam()
     t =  threading.Thread(target=app.update, args=())
-    c =  threading.Thread(target=cam.update, args=())
+    #c =  threading.Thread(target=cam.update, args=())
     t.daemon = True
     t.start()
-    c.start()
+    #c.start()
 
-    app.motor_init()
+    #app.motor_init()
 
     while True:
         app.run_threaded()
-        frame = cam.run_threaded()
-        if frame is not None:
-            cv2.imshow('my_win', frame)
-            if cv2.waitKey(1) & 0xff == ord('q'):
-                break
+        #cam.run_threaded()
+        #if frame is not None:
+        #    cv2.imshow('my_win', frame)
+        #    if cv2.waitKey(1) & 0xff == ord('q'):
+        #        break
             
         #self.cap.release()
         #cv2.destroyAllWindows()
 
-    app.motor_stop()
+    #app.motor_stop()
 
 
 
