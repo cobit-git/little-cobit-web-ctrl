@@ -13,6 +13,8 @@ import json
 import time
 import asyncio
 
+import cv2
+
 import requests
 from tornado.ioloop import IOLoop
 from tornado.web import Application, RedirectHandler, StaticFileHandler, \
@@ -30,7 +32,7 @@ from cobit_opencv_cam import CobitOpenCVCam
 
 #from ... import utils
 
-
+frame = None
 
 class LocalWebController(tornado.web.Application):
 
@@ -108,7 +110,7 @@ class LocalWebController(tornado.web.Application):
         else:
             self.motor.motor_all_start(0)
         angle_x = self.angle*100 + 90
-        print(angle_x)
+        #print(angle_x)
         if angle_x > 30 and angle_x < 150:
             self.servo.servo[0].angle = angle_x
         return self.angle, self.throttle, self.mode, self.recording
@@ -234,7 +236,7 @@ class VideoAPI(RequestHandler):
     '''
     Serves a MJPEG of the images posted from the vehicle.
     '''
-
+    global frame
     async def get(self):
 
         self.set_header("Content-type",
@@ -245,14 +247,14 @@ class VideoAPI(RequestHandler):
         while True:
 
             interval = .01
-            if served_image_timestamp + interval < time.time() and \
-                    hasattr(self.application, 'img_arr'):
+            if served_image_timestamp + interval < time.time(): #and 
+                #    hasattr(self.application, 'img_arr'):
 
-                img = utils.arr_to_binary(self.application.img_arr)
+                #img = utils.arr_to_binary(self.application.img_arr)
                 self.write(my_boundary)
                 self.write("Content-type: image/jpeg\r\n")
-                self.write("Content-length: %s\r\n\r\n" % len(img))
-                self.write(img)
+                self.write("Content-length: %s\r\n\r\n" % len(frame))
+                self.write(frame)
                 served_image_timestamp = time.time()
                 try:
                     await self.flush()
@@ -317,7 +319,7 @@ if __name__=='__main__':
     cam = CobitOpenCVCam()
     t =  threading.Thread(target=app.update, args=())
     c =  threading.Thread(target=cam.update, args=())
-    #t.daemon = True
+    t.daemon = True
     t.start()
     c.start()
 
@@ -325,8 +327,14 @@ if __name__=='__main__':
 
     while True:
         app.run_threaded()
-        cam.run_threaded()
-        time.sleep(0.1)
+        frame = cam.run_threaded()
+        if frame is not None:
+            cv2.imshow('my_win', frame)
+            if cv2.waitKey(1) & 0xff == ord('q'):
+                break
+            
+        #self.cap.release()
+        #cv2.destroyAllWindows()
 
     app.motor_stop()
 
