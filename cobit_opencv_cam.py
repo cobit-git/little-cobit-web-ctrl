@@ -1,4 +1,5 @@
 import cv2
+import time
 
 class CobitOpenCVCam:
     # OpenCV and camera init
@@ -6,6 +7,9 @@ class CobitOpenCVCam:
         
         self.frame = None
         self.ret = False
+        self.cap = cv2.VideoCapture(0)
+        self.cap.release()
+        time.sleep(1)
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3, 320)
         self.cap.set(4, 240)

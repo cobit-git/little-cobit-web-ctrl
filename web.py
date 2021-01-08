@@ -26,8 +26,8 @@ from socket import gethostname
 import threading 
 
 # Conner
-#from adafruit_servokit import ServoKit
-#from cobit_car_motor_l9110 import CobitCarMotorL9110
+from adafruit_servokit import ServoKit
+from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
 
 #from ... import utils
@@ -104,18 +104,15 @@ class LocalWebController(tornado.web.Application):
                 if self.loop is not None:
                     self.loop.add_callback(self.update_wsclients)
         # Conner 
-        #print(self.throttle)
+        print(self.throttle)
         if self.throttle > 0:
-            #self.motor.motor_all_start(int(self.throttle*100))
-            pass
+            self.motor.motor_all_start(int(self.throttle*100))
         else:
-            #self.motor.motor_all_start(0)
-            pass
+            self.motor.motor_all_start(0)
         angle_x = self.angle*100 + 90
         #print(angle_x)
         if angle_x > 30 and angle_x < 150:
-            #self.servo.servo[0].angle = angle_x
-            pass
+            self.servo.servo[0].angle = angle_x
         return self.angle, self.throttle, self.mode, self.recording
         
     def run(self, img_arr=None):
@@ -126,14 +123,14 @@ class LocalWebController(tornado.web.Application):
         pass
 
     # Conner
-    #def motor_init(self):
-    #    self.motor = CobitCarMotorL9110()
-    #    self.servo = ServoKit(channels=16)
+    def motor_init(self):
+        self.motor = CobitCarMotorL9110()
+        self.servo = ServoKit(channels=16)
 
     # Conner
-    #def motor_stop(self):
-    #    self.motor.motor_all_stop()
-    #    self.servo.servo[0].angle = 90
+    def motor_stop(self):
+        self.motor.motor_all_stop()
+        self.servo.servo[0].angle = 90
 
 
 class DriveAPI(RequestHandler):
@@ -332,7 +329,7 @@ if __name__=='__main__':
     t.start()
     #c.start()
 
-    #app.motor_init()
+    app.motor_init()
 
     while True:
         app.run_threaded()
