@@ -26,8 +26,8 @@ from socket import gethostname
 import threading 
 
 # Conner
-from adafruit_servokit import ServoKit
-from cobit_car_motor_l9110 import CobitCarMotorL9110
+#from adafruit_servokit import ServoKit
+#from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
 
 #from ... import utils
@@ -81,7 +81,7 @@ class LocalWebController(tornado.web.Application):
         self.listen(self.port)
         self.loop = IOLoop.instance()
         self.loop.start()
-
+    '''
     def update_wsclients(self):
         for wsclient in self.wsclients:
             try:
@@ -89,31 +89,32 @@ class LocalWebController(tornado.web.Application):
                     'num_records': self.num_records
                 }
                 data_str = json.dumps(data)
+                print(data_str)
                 wsclient.write_message(data_str)
             except Exception as e:
                 print(e)
                 pass
-
+    '''
     def run_threaded(self, img_arr=None, num_records=0):
         self.img_arr = img_arr
         self.num_records = num_records
 
         # Send record count to websocket clients
-        if (self.num_records is not None and self.recording is True):
-            if self.num_records % 10 == 0:
-                if self.loop is not None:
-                    self.loop.add_callback(self.update_wsclients)
+        #if (self.num_records is not None and self.recording is True):
+        #    if self.num_records % 10 == 0:
+        #        if self.loop is not None:
+        #            self.loop.add_callback(self.update_wsclients)
         # Conner 
-        print(self.throttle)
-        if self.throttle > 0:
-            self.motor.motor_all_start(int(self.throttle*100))
-        else:
-            self.motor.motor_all_start(0)
-        angle_x = self.angle*100 + 90
+        print(self.throttle*100)
+        #if self.throttle > 0:
+        #    self.motor.motor_all_start(int(self.throttle*100))
+        #else:
+        #    self.motor.motor_all_start(0)
+        #angle_x = self.angle*100 + 90
         #print(angle_x)
-        if angle_x > 30 and angle_x < 150:
-            self.servo.servo[0].angle = angle_x
-        return self.angle, self.throttle, self.mode, self.recording
+        #if angle_x > 30 and angle_x < 150:
+        #    self.servo.servo[0].angle = angle_x
+        #return self.angle, self.throttle, self.mode, self.recording
         
     def run(self, img_arr=None):
         self.img_arr = img_arr
@@ -329,7 +330,7 @@ if __name__=='__main__':
     t.start()
     #c.start()
 
-    app.motor_init()
+    #app.motor_init()
 
     while True:
         app.run_threaded()

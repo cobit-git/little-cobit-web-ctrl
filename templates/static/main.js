@@ -82,6 +82,22 @@ var driveHandler = new function() {
           if(e.which == 65) { updateDriveMode('auto') } // 'a' turn on auto mode
           if(e.which == 68) { updateDriveMode('user') } // 'd' turn on manual mode
           if(e.which == 83) { updateDriveMode('auto_angle') } // 'a' turn on auto mode
+          if(e.which == 38) { 
+            throttleUp();
+            console.log("throttle up");
+          }  // up arrow key throttle up 
+          if(e.which == 40) { 
+            throttleDown();
+            console.log("throttle down"); 
+          } // down arrow  slow down
+          if(e.which == 37) { 
+            angleLeft();  // left arrow key turn left
+            console.log("turn left");
+          }
+          if(e.which == 39) { 
+            angleRight();
+            console.log("turn right"); 
+          } // right arrow key turn right
       });
 
       $('#mode_select').on('change', function () {
@@ -155,6 +171,7 @@ var driveHandler = new function() {
     }
 
     var updateUI = function() {
+    
       $("#throttleInput").val(state.tele.user.throttle);
       $("#angleInput").val(state.tele.user.angle);
       $('#mode_select').val(state.driveMode);
