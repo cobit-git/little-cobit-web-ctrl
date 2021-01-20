@@ -63,11 +63,11 @@ class vehicle_control:
         self.servo = ServoKit(channels=16)
 
     def motor_control(self, angle, throttle):
-        if self.throttle > 0:
-            self.motor.motor_all_start(int(self.throttle*100))
+        if throttle > 0:
+            self.motor.motor_all_start(int(throttle*100))
         else:
             self.motor.motor_all_start(0)
-        angle_x = self.angle*100 + 90
+        angle_x = angle*100 + 90
         if angle_x > 30 and angle_x < 150:
             self.servo.servo[0].angle = angle_x
 
