@@ -9,10 +9,40 @@ import time
 
 from adafruit_servokit import ServoKit
 from cobit_car_motor_l9110 import CobitCarMotorL9110
+from cobit_opencv_cam import CobitOpenCVCam
 
 class DriveAPI(RequestHandler):
     def get(self):
         self.render("templates/vehicle_main.html")
+
+class VideoAPI(RequestHandler):
+    #rves a MJPEG of the images posted from the vehicle.
+    async def get(self):
+
+        cam = CobitOpenCVCam()
+        c =  threading.Thread(target=cam.update, args=())
+        c.start()
+
+        self.set_header("Content-type",
+                        "multipart/x-mixed-replace;boundary=--boundarydonotcross")
+
+        my_boundary = "--boundarydonotcross\n"
+        while True:
+
+            interval = .01
+            self.jpeg = cam.run_threaded()
+            if self.jpeg is not None:
+                self.write(my_boundary)
+                self.write("Content-type: image/jpeg\r\n")
+                self.write("Content-length: %s\r\n\r\n" % len(self.jpeg))
+                self.write(self.jpeg)
+                #served_image_timestamp = time.time()
+                try:
+                    await self.flush()
+                except tornado.iostream.StreamClosedError:
+                    pass
+            else:
+                await tornado.gen.sleep(interval)
 
 class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -37,6 +67,7 @@ class cobit_car_server(tornado.web.Application):
         handlers = [
             (r"/", RedirectHandler, dict(url="/drive")),
             (r"/drive", DriveAPI),
+            (r"/video", VideoAPI),
             (r"/static/(.*)", StaticFileHandler,
                 {"path": self.static_file_path}),
             (r"/wsDrive", WebSocketDriveAPI),
@@ -63,13 +94,19 @@ class vehicle_control:
         self.servo = ServoKit(channels=16)
 
     def motor_control(self, angle, throttle):
-        if throttle > 0:
-            self.motor.motor_all_start(int(throttle*100))
+        if throttle > 0.1:
+            print(throttle)
+            self.motor.motor_move_forward(int(throttle*100))
+        elif throttle <= 0.1 and throttle >= -0.1:
+            self.motor.motor_stop()
         else:
-            self.motor.motor_all_start(0)
+            self.motor.motor_move_backward(-1*(int(throttle*100)))
+            
         angle_x = angle*100 + 90
         if angle_x > 30 and angle_x < 150:
+            print(angle)
             self.servo.servo[0].angle = angle_x
+
 
 
 

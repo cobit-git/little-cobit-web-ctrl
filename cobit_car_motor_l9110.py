@@ -31,28 +31,51 @@ class CobitCarMotorL9110():
         self.motor1_pwm.start(0)
         self.motor2_pwm = IO.PWM(self.motor2_l_pwmPin, 100)
         self.motor2_pwm.start(0)
-    
-    def motor1_start(self, speed):
+
+
+    def motor_move_forward(self, speed):
+        self.motor1_pwm.stop()
+        self.motor2_pwm.stop()
+        self.motor1_pwm = IO.PWM(self.motor1_r_pwmPin, 100)
+        self.motor2_pwm = IO.PWM(self.motor2_l_pwmPin, 100)
+        self.motor1_pwm.start(0)
+        self.motor2_pwm.start(0)
         self.motor1_pwm.ChangeDutyCycle(speed)
-
-    def motor2_start(self, speed):
         self.motor2_pwm.ChangeDutyCycle(speed)
-
-    def motor_all_start(self, speed):
-        self.motor1_start(speed)
-        self.motor2_start(speed)
-
-    def motor_all_stop(self):
-        self.motor1_start(0)
-        self.motor2_start(0)
+        
+    def motor_stop(self):
+        self.motor1_pwm.ChangeDutyCycle(0)
+        self.motor1_pwm.stop()
+        IO.output(self.motor1_r_dirPin, False) 
+        IO.output(self.motor1_r_pwmPin, False)
+        self.motor2_pwm.ChangeDutyCycle(0)
+        self.motor2_pwm.stop()
+        IO.output(self.motor2_l_dirPin, False) 
+        IO.output(self.motor2_l_pwmPin, False)
+        
+    def motor_move_backward(self, speed):
+        self.motor1_pwm.stop()
+        self.motor1_pwm = IO.PWM(self.motor1_r_dirPin, 100)
+        self.motor1_pwm.start(0)
+        self.motor1_pwm.ChangeDutyCycle(speed)
+        self.motor2_pwm.stop()
+        self.motor2_pwm = IO.PWM(self.motor2_l_dirPin, 100)
+        self.motor2_pwm.start(0)
+        self.motor2_pwm.ChangeDutyCycle(speed)
+        
 
 if __name__ == '__main__':
 
     cobit_motor = CobitCarMotorL9110()
     while True:
-        cobit_motor.motor_all_start(50)
+        cobit_motor.motor_move_forward(30)
         time.sleep(2)
-        cobit_motor.motor_all_stop()
+        cobit_motor.motor_stop()
+        time.sleep(2)
+        
+        cobit_motor.motor_move_backward(30)
+        time.sleep(2)
+        cobit_motor.motor_stop()
         time.sleep(2)
 
 
