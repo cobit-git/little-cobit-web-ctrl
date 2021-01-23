@@ -7,36 +7,48 @@ import threading
 import asyncio
 import time 
 
+import utils
+
 from adafruit_servokit import ServoKit
 from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
 
+cam = None
+
 class DriveAPI(RequestHandler):
     def get(self):
-        self.render("templates/vehicle_main.html")
+        self.render("templates/vehicle_teleop.html")
+
+class LaneAPI(RequestHandler):
+    def get(self):
+        print("LaneAPI")
+        self.render("templates/lane_detect.html")
+
+class LaneButtonAPI(RequestHandler):
+     async def post(self):
+        print("LaneAPI button") 
 
 class VideoAPI(RequestHandler):
     #rves a MJPEG of the images posted from the vehicle.
     async def get(self):
-
-        cam = CobitOpenCVCam()
-        c =  threading.Thread(target=cam.update, args=())
-        c.start()
+        print("VideoAPI")
+       
 
         self.set_header("Content-type",
                         "multipart/x-mixed-replace;boundary=--boundarydonotcross")
-
+        served_image_timestamp = time.time()
         my_boundary = "--boundarydonotcross\n"
         while True:
 
             interval = .01
-            self.jpeg = cam.run_threaded()
-            if self.jpeg is not None:
+            if served_image_timestamp + interval < time.time():
+
+                img = cam.update()
                 self.write(my_boundary)
                 self.write("Content-type: image/jpeg\r\n")
-                self.write("Content-length: %s\r\n\r\n" % len(self.jpeg))
-                self.write(self.jpeg)
-                #served_image_timestamp = time.time()
+                self.write("Content-length: %s\r\n\r\n" % len(img))
+                self.write(img)
+                served_image_timestamp = time.time()
                 try:
                     await self.flush()
                 except tornado.iostream.StreamClosedError:
@@ -55,6 +67,9 @@ class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
         self.application.mode = data['drive_mode']
         self.application.recording = data['recording']
 
+    def on_close(self):
+        print("Client disconnected")
+
 
 class cobit_car_server(tornado.web.Application):
     def __init__(self, port = 8887):
@@ -71,6 +86,8 @@ class cobit_car_server(tornado.web.Application):
             (r"/static/(.*)", StaticFileHandler,
                 {"path": self.static_file_path}),
             (r"/wsDrive", WebSocketDriveAPI),
+            (r"/lane", LaneAPI),
+            (r"/setparams", LaneButtonAPI),
         ]
 
         settings = {'debug': True}
@@ -95,7 +112,6 @@ class vehicle_control:
 
     def motor_control(self, angle, throttle):
         if throttle > 0.1:
-            print(throttle)
             self.motor.motor_move_forward(int(throttle*100))
         elif throttle <= 0.1 and throttle >= -0.1:
             self.motor.motor_stop()
@@ -104,17 +120,14 @@ class vehicle_control:
             
         angle_x = angle*100 + 90
         if angle_x > 30 and angle_x < 150:
-            print(angle)
             self.servo.servo[0].angle = angle_x
-
-
-
 
 if __name__=="__main__":
     app = cobit_car_server()
     t = threading.Thread(target=app.run, args=())
     t.daemon = True
     t.start()
+    cam = CobitOpenCVCam()
 
     vc = vehicle_control()
 

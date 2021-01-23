@@ -1,5 +1,6 @@
 import cv2
 import time
+import numpy as np
 
 class CobitOpenCVCam:
     # OpenCV and camera init
@@ -8,38 +9,21 @@ class CobitOpenCVCam:
         self.frame = None
         self.ret = False
         self.cap = cv2.VideoCapture(0)
-        self.cap.release()
-        time.sleep(1)
-        self.cap = cv2.VideoCapture(0)
         self.cap.set(3, 320)
         self.cap.set(4, 240)
         self.jpeg = None
 
-    # return captured image (not using thread)
-    def run(self):
-        #return self.frame
-         if self.jpeg is not None:
-            return self.jpeg.tobytes()
 
-
-    # return captured image (using thread)
-    def run_threaded(self):
-        #return self.frame
-        if self.jpeg is not None:
-            return self.jpeg.tobytes()
-
-    # Video capture thread q
+    # send jpeg image
     def update(self):
-        #self.ret, self.frame = self.cap.read()
-        while (self.cap.isOpened()):
-            self.ret, self.frame = self.cap.read()
-            self.ret, self.jpeg = cv2.imencode('.jpg', self.frame)
-            #cv2.imshow('my_win', img)
-            #if cv2.waitKey(1) & 0xff == ord('q'):
-            #    break
-            
-        self.cap.release()
-        cv2.destroyAllWindows()
+        ret, frame = self.cap.read()
+        if ret  == False:
+            frame_ = np.zeros((240, 320, 3), np.uint8)
+            cv2.putText(image, 'No camera', (40, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 1)
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        return jpeg.tobytes()
 
-    # shutdonw camera 
-    #def shutdonw(self):
+if __name__ == '__main__':
+    cam = CobitOpenCVCam()
+    cam.update() 
+
