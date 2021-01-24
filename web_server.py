@@ -25,15 +25,26 @@ class LaneAPI(RequestHandler):
         self.render("templates/lane_detect.html")
 
 class LaneButtonAPI(RequestHandler):
-     async def post(self):
-        print("LaneAPI button") 
+    async def post(self):
+        print(self.request.body)
+        # get args from POST request
+        move = self.get_argument('move')
+        recording = self.get_argument('recording')
+        if move == "forward":
+            print("go")
+            cam.set_lane_detect(True)
+        else: 
+            print("stop")
+            cam.set_lane_detect(False)
+        if recording == True:
+            print("recoridnf on")
+        else:
+            print("recording off")
 
 class VideoAPI(RequestHandler):
     #rves a MJPEG of the images posted from the vehicle.
     async def get(self):
         print("VideoAPI")
-       
-
         self.set_header("Content-type",
                         "multipart/x-mixed-replace;boundary=--boundarydonotcross")
         served_image_timestamp = time.time()
@@ -134,3 +145,4 @@ if __name__=="__main__":
     while True:
         time.sleep(0.1)
         vc.motor_control(app.get_angle(),app.get_throttle())
+s

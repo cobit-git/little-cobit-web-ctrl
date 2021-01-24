@@ -15,10 +15,10 @@
     $(document).ready(function(){
 
 
-        function ChangeRes(w, h){
+        function ControlCarRun(move, recording){
             var data = new FormData();
-            data.append('width', w);
-            data.append('height', h);
+            data.append('move', move);
+            data.append('recording', recording);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/setparams', true);
@@ -26,16 +26,16 @@
         }
 
         $("#low").click(function(){
-            ChangeRes(320, 240);
+            ControlCarRun("forward", false);
         })
 
         $("#norm").click(function(){
-            ChangeRes(640, 480);
+            ControlCarRun("stop", false);
         })
 
-        $("#hi").click(function(){
-            ChangeRes(800, 600);
-        })
+        //$("#hi").click(function(){
+        //    
+        //})
 
     });
 </script>
