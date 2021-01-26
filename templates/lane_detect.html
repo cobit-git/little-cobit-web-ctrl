@@ -2,9 +2,9 @@
 {% block content %}
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <div class="btn-group">
-        <a href="#" class="btn btn-primary my" id="low">Resolution low</a>
-        <a href="#" class="btn btn-primary my" id="norm">Resolution medium</a>
-        <a href="#" class="btn btn-primary my" id="hi">Resolution hi</a>
+        <a href="#" class="btn btn-primary my" id="low">Run car</a>
+        <a href="#" class="btn btn-primary my" id="norm">Stop car </a>
+        <a href="#" class="btn btn-primary my" id="hi">Recording</a>
     </div>
     <div class="col-xs-8 col-sm-5 col-md-5"><!-- center column -->
         <div class="thumbnail">
@@ -14,28 +14,38 @@
 <script type="text/javascript">
     $(document).ready(function(){
 
+        var recording_f = false;
 
         function ControlCarRun(move, recording){
             var data = new FormData();
             data.append('move', move);
-            data.append('recording', recording);
-
+            if(recording_f == true){
+                data.append('recording', 'on');
+            }else{
+                data.append('recording', 'off');
+            }
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/setparams', true);
             xhr.send(data);
         }
 
         $("#low").click(function(){
-            ControlCarRun("forward", false);
+            ControlCarRun("forward", recording_f);
         })
 
         $("#norm").click(function(){
-            ControlCarRun("stop", false);
+            ControlCarRun("stop", recording_f);
         })
 
-        //$("#hi").click(function(){
-        //    
-        //})
+        $("#hi").click(function(){
+            if(recording_f == true){
+                recording_f = false;
+                console.log(recording_f);
+            }else{
+                recording_f = true;
+                console.log(recording_f);
+            }
+        })
 
     });
 </script>

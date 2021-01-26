@@ -28,7 +28,8 @@ class CobitOpenCVCam:
                 self.frame_ = np.zeros((240, 320, 3), np.uint8)
                 cv2.putText(self.frame, 'No camera', (40, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 1)
             ret, self.jpeg = cv2.imencode('.jpg', self.frame)
-            return self.jpeg.tobytes()
+            angle_tmp = 90
+            return angle_tmp, self.jpeg.tobytes()
         elif self.lane_detect is True:
             lanes, frame_lane = self.cv_detector.get_lane(self.frame)
             angle, frame_angle = self.cv_detector.get_steering_angle(frame_lane, lanes)
@@ -36,7 +37,8 @@ class CobitOpenCVCam:
                 frame_angle = np.zeros((240, 320, 3), np.uint8)
                 cv2.putText(frame_angle, 'No frame', (40, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 1)
             ret, self.jpeg = cv2.imencode('.jpg', frame_angle)
-            return self.jpeg.tobytes()
+            time.sleep(0.05)
+            return angle, self.jpeg.tobytes()
 
     def set_lane_detect(self, value):
         self.lane_detect = value

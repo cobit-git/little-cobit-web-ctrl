@@ -24,6 +24,7 @@ class LaneAPI(RequestHandler):
         print("LaneAPI")
         self.render("templates/lane_detect.html")
 
+
 class LaneButtonAPI(RequestHandler):
     async def post(self):
         print(self.request.body)
@@ -33,11 +34,14 @@ class LaneButtonAPI(RequestHandler):
         if move == "forward":
             print("go")
             cam.set_lane_detect(True)
+            vc.throttle_control(20)
         else: 
             print("stop")
             cam.set_lane_detect(False)
-        if recording == True:
-            print("recoridnf on")
+            vc.throttle_control(0)
+        if recording == 'on':
+            print("recoridng on")
+            
         else:
             print("recording off")
 
@@ -53,8 +57,8 @@ class VideoAPI(RequestHandler):
 
             interval = .01
             if served_image_timestamp + interval < time.time():
-
-                img = cam.update()
+                angle, img = cam.update()
+                vc.servo_control(angle)
                 self.write(my_boundary)
                 self.write("Content-type: image/jpeg\r\n")
                 self.write("Content-length: %s\r\n\r\n" % len(img))
@@ -64,6 +68,7 @@ class VideoAPI(RequestHandler):
                     await self.flush()
                 except tornado.iostream.StreamClosedError:
                     pass
+               
             else:
                 await tornado.gen.sleep(interval)
 
@@ -133,6 +138,15 @@ class vehicle_control:
         if angle_x > 30 and angle_x < 150:
             self.servo.servo[0].angle = angle_x
 
+    def servo_control(self, angle):
+        if angle > 30 and angle < 150:
+            self.servo.servo[0].angle = angle
+
+    def throttle_control(self, throttle):
+        print("test-e")
+        self.motor.motor_move_forward(throttle)
+
+
 if __name__=="__main__":
     app = cobit_car_server()
     t = threading.Thread(target=app.run, args=())
@@ -144,5 +158,5 @@ if __name__=="__main__":
 
     while True:
         time.sleep(0.1)
-        vc.motor_control(app.get_angle(),app.get_throttle())
+        #vc.motor_control(app.get_angle(),app.get_throttle())
 s
