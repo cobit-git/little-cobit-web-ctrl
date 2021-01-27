@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <div class="btn-group">
+        <a href="#" class="btn btn-primary my" id="start">Start data labeling</a>
+        <a href="#" class="btn btn-primary my" id="cancel">Cancel data labeling</a>
+        <a href="#" class="btn btn-primary my" id="download ">Downlaod label-ed data</a>
+    </div>
+    <div class="col-xs-8 col-sm-5 col-md-5"><!-- center column -->
+        <div class="thumbnail">
+          <img id='mpeg-image-label', class='img-responsive' src="/label_video"/> </img>
+        </div>
+    </div><!-- end center column -->
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        function SendCmd(action){
+            var data = new FormData();
+            data.append('action', action);
+          
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/label_cmd', true);
+            xhr.send(data);
+        }
+
+        $("#start").click(function(){
+            SendCmd("start");
+        })
+
+        $("#cancel").click(function(){
+            SendCmd("cancel");
+        })
+
+        $("#download").click(function(){
+           console.log("Download!!");
+        })
+
+    });
+</script>
+{% end %}

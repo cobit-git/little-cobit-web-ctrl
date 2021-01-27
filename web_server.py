@@ -12,6 +12,7 @@ import utils
 from adafruit_servokit import ServoKit
 from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
+from cobit_opencv_get_data import CobitOpenCVGetData
 
 cam = None
 
@@ -24,6 +25,10 @@ class LaneAPI(RequestHandler):
         print("LaneAPI")
         self.render("templates/lane_detect.html")
 
+class LabelAPI(RequestHandler):
+    def get(self):
+        print("LabelAPI")
+        self.render("templates/get_data.html")
 
 class LaneButtonAPI(RequestHandler):
     async def post(self):
@@ -41,9 +46,27 @@ class LaneButtonAPI(RequestHandler):
             vc.throttle_control(0)
         if recording == 'on':
             print("recoridng on")
+            cam.set_recording_status(True)
             
         else:
             print("recording off")
+            cam.set_recording_status(False)
+
+class LabelButtonAPI(RequestHandler):
+    async def post(self):
+        print(self.request.body)
+        # get args from POST request
+        act = self.get_argument('action')
+        if act == "start":
+            print("start")
+        if act == '':
+            print("recoridng on")
+            cam.set_recording_status(True)
+            
+        else:
+            print("recording off")
+            cam.set_recording_status(False)
+
 
 class VideoAPI(RequestHandler):
     #rves a MJPEG of the images posted from the vehicle.
@@ -71,6 +94,38 @@ class VideoAPI(RequestHandler):
                
             else:
                 await tornado.gen.sleep(interval)
+
+class LabelVideoAPI(RequestHandler):
+    #rves a MJPEG of the images posted from the vehicle.
+    async def get(self):
+        print("LabelVideoAPI")
+        loop = True
+        self.set_header("Content-type",
+                        "multipart/x-mixed-replace;boundary=--boundarydonotcross")
+        served_image_timestamp = time.time()
+        my_boundary = "--boundarydonotcross\n"
+        while loop:
+
+            interval = .01
+            if served_image_timestamp + interval < time.time():
+                ret, jpeg, img = label_cam.update()
+                self.write(my_boundary)
+                self.write("Content-type: image/jpeg\r\n")
+                self.write("Content-length: %s\r\n\r\n" % len(jpeg))
+                self.write(jpeg)
+                served_image_timestamp = time.time()
+                try:
+                    await self.flush()
+                except tornado.iostream.StreamClosedError:
+                    pass
+               
+            else:
+                await tornado.gen.sleep(interval)
+
+class GetDataAPI(RequestHandler):
+    async def get(self):
+        print("GetDataAPI")
+
 
 class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
     def open(self):
@@ -104,6 +159,9 @@ class cobit_car_server(tornado.web.Application):
             (r"/wsDrive", WebSocketDriveAPI),
             (r"/lane", LaneAPI),
             (r"/setparams", LaneButtonAPI),
+            (r"/label", LabelAPI),
+            (r"/label_cmd", LabelButtonAPI),
+            (r"/label_video", LabelVideoAPI),
         ]
 
         settings = {'debug': True}
@@ -153,7 +211,7 @@ if __name__=="__main__":
     t.daemon = True
     t.start()
     cam = CobitOpenCVCam()
-
+    label_cam = CobitOpenCVGetData()
     vc = vehicle_control()
 
     while True:
