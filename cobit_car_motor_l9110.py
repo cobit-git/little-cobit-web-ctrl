@@ -34,14 +34,16 @@ class CobitCarMotorL9110():
 
 
     def motor_move_forward(self, speed):
-        self.motor1_pwm.stop()
-        self.motor2_pwm.stop()
-        self.motor1_pwm = IO.PWM(self.motor1_r_pwmPin, 100)
-        self.motor2_pwm = IO.PWM(self.motor2_l_pwmPin, 100)
-        self.motor1_pwm.start(0)
-        self.motor2_pwm.start(0)
-        self.motor1_pwm.ChangeDutyCycle(speed)
-        self.motor2_pwm.ChangeDutyCycle(speed)
+        if speed > 100:
+            speed = 100
+        #self.motor1_pwm.stop()
+        #self.motor2_pwm.stop()
+        #self.motor1_pwm = IO.PWM(self.motor1_r_pwmPin, 100)
+        #self.motor2_pwm = IO.PWM(self.motor2_l_pwmPin, 100)
+        #self.motor1_pwm.start(0)
+        #self.motor2_pwm.start(0)
+        self.motor1_pwm.ChangeDutyCycle(int(speed))
+        self.motor2_pwm.ChangeDutyCycle(int(speed))
         
     def motor_stop(self):
         self.motor1_pwm.ChangeDutyCycle(0)
@@ -54,6 +56,8 @@ class CobitCarMotorL9110():
         IO.output(self.motor2_l_pwmPin, False)
         
     def motor_move_backward(self, speed):
+        if speed > 100:
+            speed = 100
         self.motor1_pwm.stop()
         self.motor1_pwm = IO.PWM(self.motor1_r_dirPin, 100)
         self.motor1_pwm.start(0)
