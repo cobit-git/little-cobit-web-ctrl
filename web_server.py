@@ -50,8 +50,10 @@ class LaneButtonAPI(RequestHandler):
         else: 
             cam.set_lane_detect(False)
         if recording == 'on':
+            print("rrrr on")
             cam.set_recording_status(True) 
         else:
+            print("rrrr off ")
             cam.set_recording_status(False)
 
 class LabelButtonAPI(RequestHandler):
@@ -60,12 +62,14 @@ class LabelButtonAPI(RequestHandler):
         # get args from POST request
         act = self.get_argument('action')
         if act == "start":
-            pass
-        if act == '':
-            cam.set_recording_status(True)  
-        else:
-            cam.set_recording_status(False)
-
+            print("labeling start")
+            label_cam.remove_old_data()
+            label_cam.make_label()
+        elif act == "cancel":
+            print("labeling cancel")
+        elif act == "download":
+            print("zip and download")
+        
 
 class VideoAPI(RequestHandler):
     #rves a MJPEG of the images posted from the vehicle.
@@ -75,7 +79,6 @@ class VideoAPI(RequestHandler):
         served_image_timestamp = time.time()
         my_boundary = "--boundarydonotcross\n"
         while True:
-
             interval = .01
             if served_image_timestamp + interval < time.time():
                 angle, img = cam.update()
@@ -100,11 +103,11 @@ class VideoCVAPI(RequestHandler):
         served_image_timestamp = time.time()
         my_boundary = "--boundarydonotcross\n"
         while True:
-
             interval = .01
             if served_image_timestamp + interval < time.time():
                 angle, img = cam.update()
-                app.set_angle(angle)
+                if app.get_status() is CONST_LANE:
+                    app.set_angle(angle)
                 self.write(my_boundary)
                 self.write("Content-type: image/jpeg\r\n")
                 self.write("Content-length: %s\r\n\r\n" % len(img))
@@ -130,16 +133,17 @@ class LabelVideoAPI(RequestHandler):
 
             interval = .01
             if served_image_timestamp + interval < time.time():
-                ret, jpeg, img = label_cam.update()
-                self.write(my_boundary)
-                self.write("Content-type: image/jpeg\r\n")
-                self.write("Content-length: %s\r\n\r\n" % len(jpeg))
-                self.write(jpeg)
-                served_image_timestamp = time.time()
-                try:
-                    await self.flush()
-                except tornado.iostream.StreamClosedError:
-                    pass
+                ret, jpeg = label_cam.update()
+                if ret:
+                    self.write(my_boundary)
+                    self.write("Content-type: image/jpeg\r\n")
+                    self.write("Content-length: %s\r\n\r\n" % len(jpeg))
+                    self.write(jpeg)
+                    served_image_timestamp = time.time()
+                    try:
+                        await self.flush()
+                    except tornado.iostream.StreamClosedError:
+                        pass
                
             else:
                 await tornado.gen.sleep(interval)
@@ -187,7 +191,7 @@ class cobit_car_server(tornado.web.Application):
             (r"/setparams", LaneButtonAPI),
             (r"/label", LabelAPI),
             (r"/label_cmd", LabelButtonAPI),
-            (r"/label_video", LabelVideoAPI),
+            #(r"/label_video", LabelVideoAPI), For using video div, uncommnet it.
         ]
 
         settings = {'debug': True}
@@ -246,7 +250,9 @@ if __name__=="__main__":
         time.sleep(0.1)
         status = app.get_status()
         if status is CONST_DRIVE:
-            vc.motor_control(app.get_angle(),app.get_throttle())
+            angle = app.get_angle()
+            throttle = app.get_throttle()
+            vc.motor_control(angle,throttle)
         elif status is CONST_LANE:
             if cam.get_lane_detect() is True:
                 vc.motor_control(app.get_angle(),30)

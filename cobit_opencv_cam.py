@@ -16,7 +16,7 @@ class CobitOpenCVCam:
         self.lane_detect = False
         self.recording = False
         self.cv_detector = CobitOpencvLaneDetect()
-        fourcc =  cv2.VideoWriter_fourcc(*'XVID')
+        fourcc =  cv2.VideoWriter_fourcc('M','J','P','G')
         self.video_orig = cv2.VideoWriter('./data/car_video.avi', fourcc, 20.0, (320, 240))
 
     def get_jpeg(self):
@@ -24,9 +24,10 @@ class CobitOpenCVCam:
 
     # send jpeg image
     def update(self):
-        ret, frame_org = self.cap.read()
-        self.frame = cv2.flip(frame_org, 0)
-        
+        #ret, frame_org = self.cap.read()
+        #self.frame = cv2.flip(frame_org, 0)
+        ret, self.frame = self.cap.read()
+
         if self.lane_detect is False:
             if ret  == False:
                 self.frame_ = np.zeros((240, 320, 3), np.uint8)
