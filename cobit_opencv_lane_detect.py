@@ -59,15 +59,20 @@ def detect_edges(frame):
     #lower_blue = np.array([80, 150, 0])
     #upper_blue = np.array([110, 255, 255])
     # red 
-    lower_blue = np.array([0, 100, 20])
-    upper_blue = np.array([20, 255, 255])
-    #lower_blue = np.array([140, 100, 20])
-    #upper_blue = np.array([179, 255, 255])
+    #lower_blue = np.array([0, 100, 20])
+    #upper_blue = np.array([20, 255, 255])
+    lower_blue1 = np.array([0, 50, 50])
+    upper_blue1 = np.array([10, 255, 255])
     #black 
     #lower_blue = np.array([0, 5, 50])
     #upper_blue = np.array([179, 200, 255])
-    mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    show_image("blue mask", mask)
+    mask1 = cv2.inRange(hsv, lower_blue1, upper_blue1)
+    lower_blue2 = np.array([170, 50, 50])
+    upper_blue2 = np.array([180, 255, 255])
+
+    mask2 = cv2.inRange(hsv, lower_blue2, upper_blue2)
+    mask = mask1+mask2
+    show_image("blue mask", mask, True)
 
     # detect edges
     #edges = cv2.Canny(mask, 200, 400)

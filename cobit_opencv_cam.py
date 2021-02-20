@@ -24,9 +24,9 @@ class CobitOpenCVCam:
 
     # send jpeg image
     def update(self):
-        #ret, frame_org = self.cap.read()
-        #self.frame = cv2.flip(frame_org, 0)
-        ret, self.frame = self.cap.read()
+        ret, frame_org = self.cap.read()
+        self.frame = cv2.flip(frame_org, 0)
+        #ret, self.frame = self.cap.read()
 
         if self.lane_detect is False:
             if ret  == False:

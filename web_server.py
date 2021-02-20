@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 from tornado.web import RequestHandler, Application, RedirectHandler, StaticFileHandler
 import tornado.websocket
 import tornado.ioloop
 import json
 import os 
+import glob
 import threading
 import asyncio
 import time 
@@ -13,6 +15,7 @@ from adafruit_servokit import ServoKit
 from cobit_car_motor_l9110 import CobitCarMotorL9110
 from cobit_opencv_cam import CobitOpenCVCam
 from cobit_opencv_get_data import CobitOpenCVGetData
+from cobit_label_data_compress import CobitLabelDataCompress
 
 cam = None
 
@@ -50,10 +53,8 @@ class LaneButtonAPI(RequestHandler):
         else: 
             cam.set_lane_detect(False)
         if recording == 'on':
-            print("rrrr on")
             cam.set_recording_status(True) 
         else:
-            print("rrrr off ")
             cam.set_recording_status(False)
 
 class LabelButtonAPI(RequestHandler):
@@ -68,8 +69,33 @@ class LabelButtonAPI(RequestHandler):
         elif act == "cancel":
             print("labeling cancel")
         elif act == "download":
-            print("zip and download")
-        
+            pass
+            
+
+class LabelDownloadAPI(RequestHandler):
+    def get(self):
+        files = os.listdir("./data")
+        zip_flag = False
+        for file in glob.glob("*.zip"):
+            zip_flag = True
+        if zip_flag:
+            os.system("rm *.zip")
+        comp.compress()
+        file_name = "car_image_angle.zip"
+        buf_size = 4096
+        self.set_header('Content-Type', 'application/octet-stream')
+        #self.set_header('Content-Disposition', 'attachment; filename=' + file_name)
+        with open(file_name, 'rb') as f:
+            print("test-1")
+            while True:
+                print("test-2")
+                data = f.read(buf_size)
+                if not data:
+                    print("test-3")
+                    break
+                print("test-4")
+                self.write(data)
+        self.finish()
 
 class VideoAPI(RequestHandler):
     #rves a MJPEG of the images posted from the vehicle.
@@ -148,9 +174,9 @@ class LabelVideoAPI(RequestHandler):
             else:
                 await tornado.gen.sleep(interval)
 
-class GetDataAPI(RequestHandler):
-    async def get(self):
-        print("GetDataAPI")
+#class GetDataAPI(RequestHandler):
+#    async def get(self):
+#        print("GetDataAPI")
 
 
 class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
@@ -191,6 +217,8 @@ class cobit_car_server(tornado.web.Application):
             (r"/setparams", LaneButtonAPI),
             (r"/label", LabelAPI),
             (r"/label_cmd", LabelButtonAPI),
+            (r"/label_down", LabelDownloadAPI),
+
             #(r"/label_video", LabelVideoAPI), For using video div, uncommnet it.
         ]
 
@@ -223,12 +251,14 @@ class vehicle_control:
     def __init__(self):
         self.motor = CobitCarMotorL9110()
         self.servo = ServoKit(channels=16)
+        self.servo_offset = 20 
+        self.servo.servo[0].angle = 90 + self.servo_offset
 
     def motor_control(self, angle, throttle):
         if throttle >= 0 and throttle <= 100:
             self.motor.motor_move_forward(int(throttle))
-        if angle >= 0 and angle <= 180:
-            self.servo.servo[0].angle = angle
+        if angle >= 30 and angle <= 150:
+            self.servo.servo[0].angle = angle + self.servo_offset
 
     def servo_control(self, angle):
         if angle > 30 and angle < 150:
@@ -244,6 +274,7 @@ if __name__=="__main__":
     t.start()
     cam = CobitOpenCVCam()
     label_cam = CobitOpenCVGetData()
+    comp = CobitLabelDataCompress()
     vc = vehicle_control()
 
     while True:

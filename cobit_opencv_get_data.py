@@ -19,7 +19,6 @@ class CobitOpenCVGetData:
                 #cv2.imshow("ddd", self.image)
                 angle, img_angle = self.cv_detector.get_steering_angle(img_lane, lanes)
                 if img_angle is None:
-                    print("ssibal")
                     pass
                 else:
                     cv2.imwrite("%s_%03d_%03d.png" % ("./data/video_label", self.index, angle), self.image)

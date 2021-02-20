@@ -25,6 +25,15 @@
             xhr.send(data);
         }
 
+        function DownCmd(){
+            var data = new FormData();
+            data.append('action', 'download');
+          
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/label_down', true);
+            xhr.send(data);
+        }
+
         $("#start").click(function(){
             SendCmd("start");
             console.log("start");
@@ -33,11 +42,6 @@
         $("#cancel").click(function(){
             SendCmd("cancel");
             console.log("cancel");
-        })
-
-        $("#download").click(function(){
-            SendCmd("download");
-            console.log("Download!!");
         })
 
     });
