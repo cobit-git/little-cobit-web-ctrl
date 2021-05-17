@@ -28,13 +28,13 @@ class DriveAPI(RequestHandler):
         print("drive API")
         self.render("templates/vehicle_teleop.html")
         cam.set_lane_detect(False)
-        app.set_status(CONST_DRIVE)
+        #app.set_status(CONST_DRIVE)
 
 class LaneAPI(RequestHandler):
     def get(self):
         print("Lane API")
         self.render("templates/lane_detect.html")
-        app.set_status(CONST_LANE)
+        #app.set_status(CONST_LANE)
 
 class LabelAPI(RequestHandler):
     def get(self):
@@ -189,6 +189,8 @@ class WebSocketDriveAPI(tornado.websocket.WebSocketHandler):
         self.application.throttle = float(data['throttle']) * 100 
         self.application.mode = data['drive_mode']
         self.application.recording = data['recording']
+        self.application.servo_mode = data['servoMode']
+        print(self.application.servo_mode)
 
 
     def on_close(self):
@@ -204,6 +206,7 @@ class cobit_car_server(tornado.web.Application):
         this_dir = os.path.dirname(os.path.realpath(__file__))
         self.static_file_path = os.path.join(this_dir, 'templates', 'static')
         self.status = CONST_DRIVE
+        self.servo_mode = '0'
 
         handlers = [
             (r"/", RedirectHandler, dict(url="/drive")),
@@ -245,6 +248,9 @@ class cobit_car_server(tornado.web.Application):
         
     def get_status(self):
         return self.status 
+
+    def get_servo_mode(self):
+        return self.servo_mode
         
 class vehicle_control:
 
@@ -277,17 +283,32 @@ if __name__=="__main__":
     comp = CobitLabelDataCompress()
     vc = vehicle_control()
 
+    toggle = False
+
     while True:
         time.sleep(0.1)
-        status = app.get_status()
-        if status is CONST_DRIVE:
+        if app.get_servo_mode() is not '0':
+            vc.throttle_control(0)  
+            if toggle is True:
+                vc.servo_control(60)
+                toggle = False
+            else:
+                vc.servo_control(90)
+                toggle = True
+        else:
             angle = app.get_angle()
             throttle = app.get_throttle()
             vc.motor_control(angle,throttle)
-        elif status is CONST_LANE:
-            if cam.get_lane_detect() is True:
-                vc.motor_control(app.get_angle(),30)
-            else:
-                vc.motor_control(90,0)
+        #status = app.get_status()
+        #print(status)
+        #if status is CONST_DRIVE:
+        #angle = app.get_angle()
+        #throttle = app.get_throttle()
+        #vc.motor_control(angle,throttle)
+        #elif status is CONST_LANE:
+        #    if cam.get_lane_detect() is True:
+        #        vc.motor_control(app.get_angle(),30)
+        #    else:
+        #        vc.motor_control(90,0)
 
             

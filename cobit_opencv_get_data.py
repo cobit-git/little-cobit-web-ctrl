@@ -6,7 +6,8 @@ from cobit_opencv_lane_detect import CobitOpencvLaneDetect
 
 class CobitOpenCVGetData:
     def __init__(self):
-        self.cap = cv2.VideoCapture('./data/car_video.avi')
+        video_file = '/home/pi/little-cobit-web-ctrl/data/car_video.avi'
+        self.cap = cv2.VideoCapture(video_file)
         self.cv_detector = CobitOpencvLaneDetect()
         self.image = None
         self.index = 0

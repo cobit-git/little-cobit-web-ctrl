@@ -24,10 +24,7 @@ class CobitOpenCVCam:
 
     # send jpeg image
     def update(self):
-        ret, frame_org = self.cap.read()
-        self.frame = cv2.flip(frame_org, 0)
-        #ret, self.frame = self.cap.read()
-
+        ret, self.frame = self.cap.read()
         if self.lane_detect is False:
             if ret  == False:
                 self.frame_ = np.zeros((240, 320, 3), np.uint8)
@@ -54,6 +51,7 @@ class CobitOpenCVCam:
         return self.lane_detect
 
     def set_recording_status(self, value):
+        print(value)
         self.recording = value
 
     def get_recording_status(self):

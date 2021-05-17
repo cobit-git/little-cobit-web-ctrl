@@ -20,6 +20,7 @@ var driveHandler = new function() {
                   'controlMode': 'joystick',
                   'maxThrottle' : 1,
                   'throttleMode' : 'user',
+                  'servoMode' : '0',
                   }
 
     var joystick_options = {}
@@ -42,6 +43,7 @@ var driveHandler = new function() {
           console.log(event.data);
       };
 
+;
       setBindings()
 
       joystick_options = {
@@ -84,20 +86,51 @@ var driveHandler = new function() {
           if(e.which == 83) { updateDriveMode('auto_angle') } // 'a' turn on auto mode
           if(e.which == 38) { 
             throttleUp();
-            console.log("throttle up");
+            console.log("- throttle up");
           }  // up arrow key throttle up 
           if(e.which == 40) { 
             throttleDown();
-            console.log("throttle down"); 
+            console.log("- throttle down"); 
           } // down arrow  slow down
           if(e.which == 37) { 
             angleLeft();  // left arrow key turn left
-            console.log("turn left");
+            console.log("- turn left");
           }
           if(e.which == 39) { 
             angleRight();
-            console.log("turn right"); 
+            console.log("- turn right"); 
           } // right arrow key turn right
+          if(e.which == 48) {
+            servo_action_0()
+          }
+          if(e.which == 49) {
+            servo_action_1()
+          }
+          if(e.which == 50) {
+            servo_action_2();
+          }
+          if(e.which == 51) {
+            servo_action_3();
+          }
+          if(e.which == 52) {
+            servo_action_4();
+          }
+          if(e.which == 53) {
+            servo_action_5();
+          }
+          if(e.which == 54) {
+            servo_action_6();
+          }
+          if(e.which == 55) {
+            servo_action_7();
+          }
+          if(e.which == 56) {
+            servo_action_8();
+          }
+          if(e.which == 57) {
+            servo_action_9();
+          }
+
       });
 
       $('#mode_select').on('change', function () {
@@ -110,6 +143,10 @@ var driveHandler = new function() {
 
       $('#throttle_mode_select').on('change', function () {
         state.throttleMode = $(this).val();
+      });
+
+      $('#servo_mode_select').on('change', function () {
+        state.servoMode = $(this).val();
       });
 
       $('#record_button').click(function () {
@@ -273,7 +310,8 @@ var driveHandler = new function() {
         data = JSON.stringify({ 'angle': state.tele.user.angle,
                                 'throttle':state.tele.user.throttle,
                                 'drive_mode':state.driveMode,
-                                'recording': state.recording})
+                                'recording': state.recording,
+                                'servoMode': state.servo_mode})
         console.log(data)
         // $.post(driveURL, data)
         socket.send(data)
@@ -440,12 +478,73 @@ var driveHandler = new function() {
       }
     };
 
+    var servo_action_0 = function(){
+      state.servo_mode  = '0';
+      console.log("0");
+      postDrive()
+    };
+
+    var servo_action_1 = function(){
+      state.servo_mode  = '1';
+      console.log("1");
+      postDrive()
+    };
+
+    var servo_action_2 = function(){
+      state.servo_mode = '2';
+      console.log("2");
+      postDrive()
+    };
+
+    var servo_action_3 = function(){
+      state.servo_mode  = "3";
+      console.log("3");
+      postDrive()
+    };
+
+    var servo_action_4 = function(){
+      state.servo_mode  = "4";
+      console.log("4");
+      postDrive()
+    };
+
+    var servo_action_5 = function(){
+      state.servo_mode  = "5";
+      console.log("5");
+      postDrive()
+    };
+
+    var servo_action_6 = function(){
+      state.servo_mode  = "6";
+      console.log("6");
+      postDrive()
+    };
+
+    var servo_action_7 = function(){
+      state.servo_mode  = "7";
+      console.log("7");
+      postDrive()
+    };
+
+    var servo_action_8 = function(){
+      state.servo_mode  = "8";
+      console.log("8");
+      postDrive()
+    };
+
+    var servo_action_9 = function(){
+      state.servo_mode  = "9";
+      console.log("9");
+      postDrive()
+    };
+
     var brake = function(i){
           console.log('post drive: ' + i)
           state.tele.user.angle = 0
           state.tele.user.throttle = 0
           state.recording = false
           state.driveMode = 'user';
+          state.servo_mode = '0';
           postDrive()
 
 
